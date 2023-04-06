@@ -9,4 +9,4 @@ R Shiny app for tracking historic games and ranking them.
 5. Save and click Run App.
 
 # Note
-This app will not work if the first game for a deck is the last entry, a deck must have at least 2 games for the EloOptimized package to run.
+This app will not work if the first game for a deck is the last entry, a deck must have at least 2 games on different days for the EloOptimized package to run.
