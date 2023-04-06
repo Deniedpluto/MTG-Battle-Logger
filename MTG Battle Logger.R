@@ -7,17 +7,16 @@ library(shiny)
 library(DT)
 library(EloOptimized)
 library(ggplot2)
+library(rstudioapi)
 
-#####-- API Pulling Data from BGG --#####
+#####-- Setting up environment --#####
 
-setwd("C:\\Users\\Peter Matson\\OneDrive\\Personal\\My Documents\\Projects\\MTG Deck Battler")
-decklist <- c("Izzet Spellslinger", "Izzet Artifacts", "Simic Volo", "Red Goblins", "Rakdos Treasure", "Orzhov Dungeon", "Dimir Rogues", "Azorius Control", "Azorius Monks", "Selesnya Lifegain", "Boros Equipment", "Black Vampires", "Golgari Graveyard", "Green Elves", "Gruul Bard")
 deprecated_decks <- c("Azorius Control", "Golgari Death", "Golgari Dungeon", "Gruul Overrun")
-decklist <- sort(decklist)
-matchlist <- data.table(decklist)
+setwd(dirname(getActiveDocumentContext()$path))
 history <- fread("history.csv")
-all_decks <- sort(unique(c(history$Winner, history$Loser)))
-# history[, Date := lubridate::mdy_hms(Date)]
+#decklist <- sort(unique(c(history$Winner, history$Loser)))
+decklist <- sort(c("Izzet Spellslinger", "Izzet Artifacts", "Simic Volo", "Red Goblins", "Rakdos Treasure", "Orzhov Dungeon", "Dimir Rogues", "Azorius Control", "Azorius Monks", "Selesnya Lifegain", "Boros Equipment", "Black Vampires", "Golgari Graveyard", "Green Elves", "Gruul Bard"))
+matchlist <- data.table(decklist)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
@@ -54,7 +53,7 @@ ui <- fluidPage(
              inputId = "decks",
              label = "Decks to exclude",
              selected = deprecated_decks,
-             choices = all_decks,
+             choices = decklist,
              multiple = TRUE
            )
     ),
@@ -180,8 +179,11 @@ server <- function(input, output, session) {
   })
   
   observe({
-
-    deck_elo = EloOptimized::eloratingfixed(agon_data = history[!(Winner %in% input$decks) & !(Loser %in% input$decks), .(Date=as.Date(Date), Winner, Loser)], k = 100, init_elo = 1000)
+    
+    valid_decks <- as.list(rbind(v$dt[, c('Winner', 'Date')], v$dt[, c('Loser', 'Date')], use.names = FALSE)[, .(count = length(unique(as.Date(Date)))), by = Winner][count > 1, Winner])
+    elo_data <- v$dt[(Winner %in% valid_decks) & (Loser %in% valid_decks) & !(Winner %in% input$decks) & !(Loser %in% input$decks), ]
+    
+    deck_elo = EloOptimized::eloratingfixed(agon_data = elo_data[, .(Date=as.Date(Date), Winner, Loser)], k = 100, init_elo = 1000)
     current_elo_data <- data.table(deck_elo$elo)[Date==max(Date), ]
 
     play_summary <- merge(v$dt[, .(Wins = .N), by = Winner], v$dt[, .(Loses = .N), by = Loser], by.x = "Winner", by.y = "Loser", all = T)
@@ -193,7 +195,7 @@ server <- function(input, output, session) {
     
     elo_table <- datatable(elo_table[!Deck %in% input$decks, c("Deck", "Date","Rank", "ELO", "ELO Group", "Expected Wins", "Wins", "Loses", "Games Played")],
                            rownames = FALSE,
-                           options = list(pageLength = 15, order = c(4, "asc"))
+                           options = list(pageLength = 15, order = c(3, "desc"))
     ) %>% formatRound(c("ELO", "Expected Wins"), 1)
     
     output$elo <- DT::renderDataTable({
