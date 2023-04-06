@@ -7,3 +7,6 @@ R Shiny app for tracking historic games and ranking them.
 3. Replace line 14 with your list of decks. It is made alphabetical in the app.
 4. Replace line 15 with your list of deprecated decks. These can be added back in inside the app. This is to save your list so you don't have to update it.
 5. Save and click Run App.
+
+# Note
+This app will not work if the first game for a deck is the last entry, a deck must have at least 2 games for the EloOptimized package to run.
