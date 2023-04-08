@@ -1,17 +1,17 @@
 #####-- Initial Setup --######
 
 # Load Libraries
-library(data.table)
 library(RODBC)
 library(shiny)
 library(DT)
 library(EloOptimized)
 library(ggplot2)
 library(rstudioapi)
+library(jsonlite)
 library(htmltools)
+library(data.table)
 
 #####-- Setting up environment --#####
-
 
 setwd(dirname(getActiveDocumentContext()$path))
 history <- fread("history.csv")
