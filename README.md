@@ -5,7 +5,7 @@ R Shiny app for tracking historic games and ranking them.
 1. Download the R script and install the required packages. Note: this was built under R 4.2.3. 
 2. Build a config file with your decklist and deprecated decks following the example.
 3. Build an initial history file following the history example.
-4. (Optional) Replace line 65 with the folder location of your saved history file. This is only necessary if the R file is not in the same folder as your history file.
+4. (Optional) Replace line 16 with the folder location of your saved history file. This is only necessary if the R file is not in the same folder as your history file.
 6. Save and click Run App.
 
 # Note
