@@ -8,15 +8,16 @@ library(DT)
 library(EloOptimized)
 library(ggplot2)
 library(rstudioapi)
+library(htmltools)
 
 #####-- Setting up environment --#####
 
-deprecated_decks <- c("Azorius Control", "Golgari Death", "Golgari Dungeon", "Gruul Overrun")
+
 setwd(dirname(getActiveDocumentContext()$path))
 history <- fread("history.csv")
-#decklist <- sort(unique(c(history$Winner, history$Loser)))
-decklist <- sort(c("Izzet Spellslinger", "Izzet Artifacts", "Simic Volo", "Red Goblins", "Rakdos Treasure", "Orzhov Dungeon", "Dimir Rogues", "Azorius Control", "Azorius Monks", "Selesnya Lifegain", "Boros Equipment", "Black Vampires", "Golgari Graveyard", "Green Elves", "Gruul Bard"))
-matchlist <- data.table(decklist)
+config <- read_json("Config.json")
+deprecated_decks <- sort(unlist(config$deprecated_decks))
+decklist <- sort(unlist(config$decklist))
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
@@ -64,34 +65,34 @@ ui <- fluidPage(
              label = "Add New Data"
            )
     ),
-    column(width = 1),
-    column(width = 1,
-           br(),
-           actionButton(
-             inputId = "save",
-             label = "Save History"
-           )
-    )
-  ),
-  fluidRow(
-    column(width = 2,
-           # br(),
-           # textOutput(outputId = "defendertext")
-    ),
-    column(width = 2,
-           # br(),
-           # textOutput(outputId = "challengertext")
-    ),
-    column(width = 2),
-    # column(width = 2,
+    column(width = 1)
+    # column(width = 1,
     #        br(),
-    #        textOutput(outputId = "added")
-    # ),
-    # column(width = 2,
-    #        br(),
-    #        textOutput(outputId = "saved")
+    #        actionButton(
+    #          inputId = "save",
+    #          label = "Save History"
+    #        )
     # )
   ),
+  # fluidRow(
+  #   column(width = 2,
+  #          br(),
+  #          textOutput(outputId = "defendertext")
+  #   ),
+  #   column(width = 2,
+  #          br(),
+  #          textOutput(outputId = "challengertext")
+  #   ),
+  #   column(width = 2),
+  #   column(width = 2,
+  #          br(),
+  #          textOutput(outputId = "added")
+  #   ),
+  #   column(width = 2,
+  #          br(),
+  #          textOutput(outputId = "saved")
+  #   )
+  # ),
   fluidRow(
     column(width= 3,
            br(),
@@ -125,9 +126,31 @@ server <- function(input, output, session) {
   winner <- reactive({input$winner})
   loser <- reactive({input$loser})
   first <- reactive({input$first})
-
+  
   # output$defendertext <- renderText("Defender goes first.")
   # output$challengertext <- renderText("Get 'em!")
+  
+  observeEvent(input$decks, {
+    
+    decklist_reduced <- setdiff(decklist, input$decks)
+    
+    updateSelectInput(
+      session,
+      inputId = "winner",
+      label = "Winner",
+      selected = decklist_reduced[1],
+      choices = decklist_reduced
+    )
+    
+    updateSelectInput(
+      session,
+      inputId = "loser",
+      label = "Loser",
+      selected = decklist_reduced[2],
+      choices = decklist_reduced
+    )
+  })
+
   
   observeEvent(input$add, {
     tmp <- data.table("Winner" = winner(), "Loser" = loser(), "Start Deck" = first(), "Date" = Sys.time())
@@ -137,15 +160,18 @@ server <- function(input, output, session) {
   
   output$historypivot <- DT::renderDataTable({
     datatable(v$dt,
+              caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black;  font-size:200% ;',"Play History"),
               rownames = FALSE,
-              options = list(order = c(3, "desc"))
+              options = list(order = c(3, "desc"), dom = 'tp')
     )
   })
   
   output$startplayer <- renderPlot({
     ggplot(v$dt[`Start Deck`!="", sum(.N)/nrow(v$dt[`Start Deck`!=""]), by = 'Start Deck'], aes(x="", y=V1, fill=`Start Deck`)) +
       geom_bar(width = 1, stat = "identity") +
-      coord_polar("y", start = 0)
+      coord_polar("y", start = 0) +
+      labs(title = "Start Deck Win %") + 
+      theme(plot.title = element_text(hjust = 0.5, size = 28, color = 'black'))
   })
   
   observe({
@@ -153,7 +179,10 @@ server <- function(input, output, session) {
     play_summary[is.na(play_summary), ] <- 0
     play_summary <- play_summary[, `Games Played` := Wins + Loses]
     
-    decks <- length(decklist) - 1
+    decklist_reduced <- setdiff(decklist, input$decks)
+    matchlist <- data.table(decklist_reduced)
+    
+    decks <- length(decklist_reduced) - 1
     matchlist <- merge(matchlist[, c(.SD, k=1)], matchlist[, c(.SD, k=1)], by = "k", allow.cartesian = TRUE)[, -c("k")]
     matchlist <- matchlist[!duplicated(rowSums(expand.grid((decks)^(0:decks), 12^(0:decks)))), ]
     setnames(matchlist, c("Deck A", "Deck B"))
@@ -165,16 +194,18 @@ server <- function(input, output, session) {
     
     output$upnext <- renderDataTable({
       datatable(games_to_play,
+                caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black;  font-size:200% ;',"Unplayed Matches"),
                 rownames = FALSE,
-                options = list(pageLength =5))
+                options = list(pageLength =5, dom = 'tp'))
     })
   })
   
   output$rankings <- DT::renderDataTable({
     
     datatable(dcast(v$dt[!Winner %in% input$decks & !Loser %in% input$decks, c(.SD, Won=1)], Winner~Loser, value.var = "Won", sum),
+              caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black;  font-size:200% ;',"Win Matrix"),
               rownames = FALSE,
-              options = list(pageLength = 15, order = c(0, "asc"))
+              options = list(pageLength = 15, order = c(0, "asc"), dom = 'tp')
     )
   })
   
@@ -185,7 +216,7 @@ server <- function(input, output, session) {
     
     deck_elo = EloOptimized::eloratingfixed(agon_data = elo_data[, .(Date=as.Date(Date), Winner, Loser)], k = 100, init_elo = 1000)
     current_elo_data <- data.table(deck_elo$elo)[Date==max(Date), ]
-
+    
     play_summary <- merge(v$dt[, .(Wins = .N), by = Winner], v$dt[, .(Loses = .N), by = Loser], by.x = "Winner", by.y = "Loser", all = T)
     play_summary[is.na(play_summary), ] <- 0
     play_summary <- play_summary[, `Games Played` := Wins + Loses]
@@ -194,12 +225,13 @@ server <- function(input, output, session) {
     setnames(elo_table, c("Deck", "Date", "ELO", "Rank", "Scaled", "Expected Wins", "Cardinal", "ELO Group", "Wins", "Loses", "Games Played"))
     
     elo_table <- datatable(elo_table[!Deck %in% input$decks, c("Deck", "Date","Rank", "ELO", "ELO Group", "Expected Wins", "Wins", "Loses", "Games Played")],
+                           caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black;  font-size:200% ;',"Deck ELO Ranking"),
                            rownames = FALSE,
-                           options = list(pageLength = 15, order = c(3, "desc"))
+                           options = list(pageLength = 15, order = c(3, "desc"), dom = 'tp')
     ) %>% formatRound(c("ELO", "Expected Wins"), 1)
     
     output$elo <- DT::renderDataTable({
-       elo_table
+      elo_table
     })
   })
   

@@ -1,0 +1,28 @@
+{
+  "decklist": [
+    "Izzet Spellslinger",
+    "Golgari Death",
+    "Golgari Dungeon",
+    "Gruul Overrun",
+    "Izzet Artifacts",
+    "Simic Volo",
+    "Red Goblins",
+    "Rakdos Treasure",
+    "Orzhov Dungeon",
+    "Dimir Rogues",
+    "Azorius Control",
+    "Azorius Monks",
+    "Selesnya Lifegain",
+    "Boros Equipment",
+    "Black Vampires",
+    "Golgari Graveyard",
+    "Green Elves",
+    "Gruul Bard"
+  ],
+  "deprecated_decks": [
+    "Azorius Control",
+    "Golgari Death",
+    "Golgari Dungeon",
+    "Gruul Overrun"
+  ]
+}
