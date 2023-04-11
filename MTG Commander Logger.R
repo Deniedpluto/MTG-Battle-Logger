@@ -332,7 +332,7 @@ server <- function(input, output, session) {
     
   })
   
-  observeEvent(input$player1, {
+  observeEvent(input$player4, {
     updateSelectInput(
       session,
       inputId = "Deck4",
