@@ -92,14 +92,15 @@ server <- function(input, output, session) {
   
   observeEvent(input$update, {
     
+    browser()
     if(input$add != "") {
     
     v$dl <- sort(unique(c(v$dl, input$add)))
     v$dd <- sort(unique(c(v$dd, input$remove)))
     
     output_json = vector(mode = "list")
-    output_json[["decklist"]] <- as.list(v$dl)
-    output_json[["deprecated_decks"]] <- as.list(v$dd)
+    output_json[["decklist"]] <- v$dl
+    output_json[["deprecated_decks"]] <- v$dd
 
     write(toJSON(output_json), "Config.json")
       

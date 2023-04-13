@@ -258,6 +258,11 @@ ui <- fluidPage(
            br(),
            dataTableOutput(outputId = "EloTable"),
     ),
+    column(width= 4,
+           br(),
+           br(),
+           dataTableOutput(outputId = "MatchHistory"),
+    ),
     column(width = 4,
            br(),
            br(),
@@ -265,11 +270,7 @@ ui <- fluidPage(
            br(),
            br(),
            plotOutput(outputId = "PlayerChart")
-    ),
-    column(width= 4,
-           br(),
-           br(),
-           dataTableOutput(outputId = "MatchHistory"),
+
     )
   )
 )
@@ -420,9 +421,7 @@ server <- function(input, output, session) {
                 rownames = FALSE,
                 options = list(pageLength = 25, dom = 'tp', order = c(2, "desc"))) %>% formatRound(c("Elo"), 1)
     ) 
-  })
-  
-  observe({
+
     matches <- data.table(v$matches)[Match > 0, c("Owner", "Deck", "Elo", "Match", "Place")]
     
     output$MatchHistory <- renderDT(
