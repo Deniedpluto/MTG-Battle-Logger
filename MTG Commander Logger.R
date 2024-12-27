@@ -1,4 +1,4 @@
-#####-- Initial Setup --######
+###  ##-- Initial Setup --######
 
 # Load Libraries
 library(RODBC)
@@ -16,10 +16,29 @@ library(data.table)
 
 setwd(dirname(getActiveDocumentContext()$path))
 source("MultiEloR.R")
-history <- fread("Commander History.csv")
+history <- fread("Commander History.csv") 
 decks <- fread("Commander Decks.csv")
 # deprecated_decks <- sort(unlist(config$deprecated_decks))
 # decklist <- sort(unlist(config$decklist))
+
+# Adding in New Decks ---------------------------------------------------------
+# 
+# decks[, new_id := hash_sha256(paste0(Owner, Deck))]
+# id_switch <- decks[ID !=new_id & ID != "" , c("ID", "Deck", "new_id")]
+# 
+# new_hist <- merge.data.table(history, id_switch, by = "ID", all.x = T)
+# new_hist[!is.na(new_id), `:=`(ID = new_id, Deck.x = Deck.y) ]
+# setnames(new_hist, "Deck.x", "Deck")
+# history <- new_hist[, c("ID", "Owner", "Deck", "Elo", "Match", "Place")]
+# rm(new_hist, id_switch)
+# 
+# decks[, ID:=new_id]
+# decks[, new_id:=NULL]
+# new_decks <- decks[!(ID %in% history$ID), c("ID", "Owner", "Deck", "Elo")]
+# history <- rbind(new_decks[, `:=`(Match = 0, Place = 0)], history)
+# 
+# fwrite(history, "Commander History.csv")
+# fwrite(decks, "Commander Decks.csv")
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
@@ -193,7 +212,7 @@ ui <- fluidPage(
                     selectInput(
                       inputId = "player4",
                       label = "Name",
-                      selected = unique(decks$Owner)[1],
+                      selected = unique(decks$Owner)[4],
                       choices = unique(decks$Owner)
                     ),
                     br(),
@@ -201,8 +220,8 @@ ui <- fluidPage(
                     selectInput(
                       inputId = "Deck4",
                       label = "Deck",
-                      selected = decks[Owner == unique(decks$Owner)[1], Deck][1],
-                      choices = sort(decks[Owner == unique(decks$Owner)[1], Deck])
+                      selected = decks[Owner == unique(decks$Owner)[4], Deck][1],
+                      choices = sort(decks[Owner == unique(decks$Owner)[4], Deck])
                     ),
                     br(),
                     br(),
@@ -258,19 +277,15 @@ ui <- fluidPage(
            br(),
            dataTableOutput(outputId = "EloTable"),
     ),
+    column(width = 4,
+           br(),
+           br(),
+           dataTableOutput(outputId = "PlayerTable"),
+    ),
     column(width= 4,
            br(),
            br(),
            dataTableOutput(outputId = "MatchHistory"),
-    ),
-    column(width = 4,
-           br(),
-           br(),
-           plotOutput(outputId = "DeckChart"),
-           br(),
-           br(),
-           plotOutput(outputId = "PlayerChart")
-
     )
   )
 )
@@ -290,7 +305,7 @@ server <- function(input, output, session) {
   # Deck3 <- reactive({input$Deck3})
   # player4 <- reactive({input$player4})
   # Deck4 <- reactive({input$Deck4})
-
+  
   observeEvent(input$player1, {
     updateSelectInput(
       session,
@@ -337,7 +352,7 @@ server <- function(input, output, session) {
     updateSelectInput(
       session,
       inputId = "Deck4",
-      selected = decks[Owner == input$player4, Deck][1],
+      selected = decks[Owner == input$player4, Deck][4],
       choices = sort(decks[Owner == input$player4, Deck])
     )
     
@@ -348,7 +363,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$predict, {
-
+    
     p1ID <- hash_sha256(paste0(input$player1, input$Deck1))
     p2ID <- hash_sha256(paste0(input$player2, input$Deck2))
     p3ID <- hash_sha256(paste0(input$player3, input$Deck3))
@@ -357,10 +372,10 @@ server <- function(input, output, session) {
     activeFilter <- c(input$active, input$active2, input$active3, input$active4)
     
     inputElo <- c(v$dt[Deck == input$Deck1 & Owner == input$player1, Elo], v$dt[Deck == input$Deck2 & Owner == input$player2, Elo],
-        v$dt[Deck == input$Deck3 & Owner == input$player3, Elo], v$dt[Deck == input$Deck4 & Owner == input$player4, Elo])[activeFilter]
+                  v$dt[Deck == input$Deck3 & Owner == input$player3, Elo], v$dt[Deck == input$Deck4 & Owner == input$player4, Elo])[activeFilter]
     
     inputPlace <- c(input$place, input$place2, input$place3, input$place4)[activeFilter]
-    
+    #browser()
     updated_ratings <- get_new_ratings(initial_ratings = inputElo, result_order = inputPlace, k_value = 60, score_base = 1)
     
     for(i in 1:length(updated_ratings)) {
@@ -374,7 +389,7 @@ server <- function(input, output, session) {
       v$dt[ID == p1ID, `:=`(Elo = player_1_elo, Played = Played + 1, Wins = Wins + w)]
       listElo <- c(listElo, player_1_elo)
     }
-      
+    
     if(input$active2) {
       if(input$place2 == 1) {w = 1 } else { w = 0}
       v$dt[ID == p2ID, `:=`(Elo = player_2_elo, Played = Played + 1, Wins = Wins + w)]
@@ -409,7 +424,7 @@ server <- function(input, output, session) {
     # write out updates
     fwrite(v$matches, "Commander History.csv")
     fwrite(v$dt, "Commander Decks.csv")
-
+    
   })
   
   observe({
@@ -421,7 +436,16 @@ server <- function(input, output, session) {
                 rownames = FALSE,
                 options = list(pageLength = 25, dom = 'tp', order = c(2, "desc"))) %>% formatRound(c("Elo"), 1)
     ) 
-
+    
+    players <- decks[, .(`Average Deck Elo` = mean(Elo), Plays = sum(Played), Wins = sum(Wins), `Win Rate` = sum(Wins)/sum(Played)), by = Owner]
+    
+    output$PlayerTable <- renderDT(
+      datatable(players,
+                caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black;  font-size:200% ;',"Player Stats"),
+                rownames = FALSE,
+                options = list(pageLength = 25, dom = 'tp', order = c(3, "desc"))) %>% formatRound(c("Average Deck Elo"), 1) %>% formatPercentage(c("Win Rate"))
+    )
+    
     matches <- data.table(v$matches)[Match > 0, c("Owner", "Deck", "Elo", "Match", "Place")]
     
     output$MatchHistory <- renderDT(
@@ -431,7 +455,7 @@ server <- function(input, output, session) {
                 options = list(pageLength = 25, dom = 'tp', order = c(3, "desc"))) %>% formatRound(c("Elo"), 1)
     )
   })
-
+  
 }
 
 # Create a Shiny app object ----------------------------------------------------
