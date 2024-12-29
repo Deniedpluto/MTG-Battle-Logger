@@ -42,5 +42,7 @@ decks[, STR := `Win Rate`*WRA]
 # decks[Played > 0, STD_STR := STR/max(STR)]
 decks[Played > 0, Weight := Played/(Played + mean(Played))]
 decks[Played > 0, `Bayes STR` := Weight * STR + (1 - Weight) * mean(STR)]
+decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Bayes STR`)]
 
-fwrite(decks, "Commander Decks + WRA.csv")
+
+fwrite(decks, "CommanderDecksWRA.csv")
