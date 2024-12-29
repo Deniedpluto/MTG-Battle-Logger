@@ -18,38 +18,48 @@ setwd(dirname(getActiveDocumentContext()$path))
 history <- fread("Commander History.csv")
 decks <- fread("Commander Decks.csv")
 
+# Calculate win rate for each deck
+decks[, `Win Rate`:=Wins/Played]
+
+# Initialize the variables and the table
 i <- 1
 win_rate_against <- data.table("ID" = character(), "WRA" = numeric())
 
-
+# Loop through the decks and calculate the win rate against each deck
 for(i in 1:nrow(decks)) {
-  test_id <- decks[i, ID]
-  
-  decks[, `Win Rate`:=Wins/Played]
-  match_list <- unique(history[ID == test_id & Match > 0, Match])
-  opponents <- history[ID != test_id & Match %in% match_list, c("ID", "Match")]
+  # Pull the id for the current row
+  current_id <- decks[i, ID]
+  # Pull the match number for all matches the deck was played.
+  match_list <- unique(history[ID == current_id & Match > 0, Match])
+  # Pull the match history for the decks this deck has played against
+  opponents <- history[ID != current_id & Match %in% match_list, c("ID", "Match")]
+  # Add in the deck stats
   opponents <- merge.data.table(opponents, decks, by = "ID")
-  
-  temp <- data.table("ID" = test_id, "WRA" = opponents[, sum(`Win Rate` * Played)/sum(Played)])
+  # Calculate the win rate against the deck
+  temp <- data.table("ID" = current_id, "WRA" = opponents[, sum(`Win Rate` * Played)/sum(Played)])
+  # Add data to win_rate_against table
   win_rate_against <- rbind(win_rate_against, temp)
 }
 
+# Merge the win rate against table with the decks table
 decks <- merge.data.table(decks, win_rate_against, by = "ID")
-
-decks[Played > 0, `Win Rate`:= Wins/Played]
+# Calculate the strength of the deck
 decks[, STR := `Win Rate`*WRA]
-# decks[Played > 0, Norm_STR := (STR - mean(STR))/sd(STR)]
-# decks[Played > 0, STD_STR := STR/max(STR)]
+# decks[Played > 0, STD_STR := (STR - mean(STR))/sd(STR)]
+# decks[Played > 0, Norm_STR := STR/max(STR)]
+# Calculate the Bayesian Weight of the deck
 decks[Played > 0, Weight := Played/(Played + mean(Played))]
+# Calculate the Bayesian Strength of the deck
 decks[Played > 0, `Bayes STR` := Weight * STR + (1 - Weight) * mean(STR)]
+# Calculate the Standardized Bayesian Strength of the deck
 decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Bayes STR`)]
 
-
+# Save out the files 
 fwrite(decks, "CommanderDecksWRA.csv")
 fwrite(history, "CommanderHistory.csv")
 
 # Check to see if am in on my laptop repos
-if (getwd() == "c:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger/MTG-Battle-Loggger") {
+if (getwd() == "c:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger/MTG-Battle-Loggger") { # nolint
   # Set the wd to the Commander_Decks folder for evidence and save the file
   setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_Decks")
   fwrite(decks, "CommanderDecksWRA.csv")
