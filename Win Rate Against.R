@@ -30,7 +30,7 @@ for(i in 1:nrow(decks)) {
   opponents <- history[ID != test_id & Match %in% match_list, c("ID", "Match")]
   opponents <- merge.data.table(opponents, decks, by = "ID")
   
-  temp <- data.table("ID" = test_id, "WRA" = opponents[, mean(`Win Rate`)])
+  temp <- data.table("ID" = test_id, "WRA" = opponents[, sum(`Win Rate` * Played)/sum(Played)])
   win_rate_against <- rbind(win_rate_against, temp)
 }
 
@@ -46,3 +46,15 @@ decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Baye
 
 
 fwrite(decks, "CommanderDecksWRA.csv")
+fwrite(history, "CommanderHistory.csv")
+
+# Check to see if am in on my laptop repos
+if (getwd() == "c:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger/MTG-Battle-Loggger") {
+  # Set the wd to the Commander_Decks folder for evidence and save the file
+  setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_Decks")
+  fwrite(decks, "CommanderDecksWRA.csv")
+  
+  # Do the same thing for the Commander_History 
+  setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_History")
+  fwrite(history, "CommanderHistory.csv")
+}
