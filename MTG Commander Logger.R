@@ -475,7 +475,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$predict, {
-    
+    # browser()
     p1ID <- hash_sha256(paste0(input$player1, input$Deck1))
     p2ID <- hash_sha256(paste0(input$player2, input$Deck2))
     p3ID <- hash_sha256(paste0(input$player3, input$Deck3))

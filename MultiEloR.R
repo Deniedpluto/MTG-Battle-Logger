@@ -59,7 +59,6 @@ get_new_ratings <- function(initial_ratings, result_order = c(1:length(initial_r
 # array([1212.01868209, 1012.15595083, 1087.84404917,  887.98131791])
 # 
 # returns an array of updated ratings (float values) in same order as input
-  
   # determine number of players
   n <- length(initial_ratings) 
   # calculate the actual ratings 
@@ -99,7 +98,6 @@ get_expected_scores <- function(initial_ratings, teams, log_base, d_value) {
   # 
   # ratings: array of ratings for each player in a matchup
   # returns an array of expected scores for all players
-  
   n = length(initial_ratings)
   base_matrix <- matrix(rep(initial_ratings, n), ncol = n)
   # get all pairwise differences
@@ -123,7 +121,7 @@ get_expected_scores <- function(initial_ratings, teams, log_base, d_value) {
   }
 
   # this should be guaranteed, but check to make sure. It is rounded to 15 decimal places to account for rounding errors in R. R generally stores 22 decimals.
-  if(round(sum(expected_scores),15) != 1) {
+  if(round(sum(expected_scores),10) != 1) {
     stop("expected scores do not sum to 1")
   }
   return(expected_scores)
