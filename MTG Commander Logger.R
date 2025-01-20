@@ -19,7 +19,7 @@ library(bsicons)
 setwd(dirname(getActiveDocumentContext()$path))
 source("MultiEloR.R")
 history <- fread("Commander History.csv") 
-decks <- fread("Commander Decks.csv")
+decks <-fread("Commander Decks.csv")
 # deprecated_decks <- sort(unlist(config$deprecated_decks))
 # decklist <- sort(unlist(config$decklist))
 
