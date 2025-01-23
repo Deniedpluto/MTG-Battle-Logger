@@ -132,20 +132,22 @@ ui <- fluidPage(
                       )
                ),
                column(width = 3,
-                      br(),
-                      checkboxInput(
-                        inputId = "active",
-                        label = "Active",
-                        value = TRUE,
-                      ),
-                      br(),
-                      br(),
-                      br(),
                       selectInput(
                         inputId = "place",
                         label = "Place",
                         selected = 1,
                         choices = c(1:4)
+                      ),
+                      selectInput(
+                        inputId = "position",
+                        label = "P.O.",
+                        selected = 1,
+                        choices = c(1:4)
+                      ),
+                      checkboxInput(
+                        inputId = "active",
+                        label = "Active",
+                        value = TRUE,
                       ),
                       br(),
                       br(),
@@ -185,20 +187,22 @@ ui <- fluidPage(
                       )
                ),
                column(width = 3,
-                      br(),
-                      checkboxInput(
-                        inputId = "active2",
-                        label = "Active",
-                        value = TRUE,
-                      ),
-                      br(),
-                      br(),
-                      br(),
                       selectInput(
                         inputId = "place2",
                         label = "Place",
                         selected = 1,
                         choices = c(1:4)
+                      ),
+                      selectInput(
+                        inputId = "position2",
+                        label = "P.O.",
+                        selected = 2,
+                        choices = c(1:4)
+                      ),
+                      checkboxInput(
+                        inputId = "active2",
+                        label = "Active",
+                        value = TRUE,
                       ),
                       br(),
                       br(),
@@ -238,20 +242,22 @@ ui <- fluidPage(
                       )
                ),
                column(width = 3,
-                      br(),
-                      checkboxInput(
-                        inputId = "active3",
-                        label = "Active",
-                        value = TRUE,
-                      ),
-                      br(),
-                      br(),
-                      br(),
                       selectInput(
                         inputId = "place3",
                         label = "Place",
                         selected = 1,
                         choices = c(1:4)
+                      ),
+                      selectInput(
+                        inputId = "position3",
+                        label = "P.O.",
+                        selected = 3,
+                        choices = c(1:4)
+                      ),
+                      checkboxInput(
+                        inputId = "active3",
+                        label = "Active",
+                        value = TRUE,
                       ),
                       br(),
                       br(),
@@ -291,20 +297,22 @@ ui <- fluidPage(
                       )
                ),
                column(width = 3,
-                      br(),
-                      checkboxInput(
-                        inputId = "active4",
-                        label = "Active",
-                        value = FALSE,
-                      ),
-                      br(),
-                      br(),
-                      br(),
                       selectInput(
                         inputId = "place4",
                         label = "Place",
                         selected = 1,
                         choices = c(1:4)
+                      ),
+                      selectInput(
+                        inputId = "position4",
+                        label = "P.O.",
+                        selected = 4,
+                        choices = c(1:4)
+                      ),
+                      checkboxInput(
+                        inputId = "active4",
+                        label = "Active",
+                        value = TRUE,
                       ),
                       br(),
                       br(),
@@ -476,12 +484,17 @@ server <- function(input, output, session) {
   
   observeEvent(input$predict, {
     # browser()
+    
+    activeFilter <- c(input$active, input$active2, input$active3, input$active4)
+    
+    if(length(unique(c(input$position, input$position2, input$position3, input$position4)[activeFilter])) != length(c(input$position, input$position2, input$position3, input$position4)[activeFilter])) {
+      stop("Player positions are not unique!")
+    }
+    
     p1ID <- hash_sha256(paste0(input$player1, input$Deck1))
     p2ID <- hash_sha256(paste0(input$player2, input$Deck2))
     p3ID <- hash_sha256(paste0(input$player3, input$Deck3))
     p4ID <- hash_sha256(paste0(input$player4, input$Deck4))
-    
-    activeFilter <- c(input$active, input$active2, input$active3, input$active4)
     
     inputElo <- c(v$md[Deck == input$Deck1 & Owner == input$player1, Elo], 
                   v$md[Deck == input$Deck2 & Owner == input$player2, Elo],
@@ -530,7 +543,8 @@ server <- function(input, output, session) {
                              Deck = c(input$Deck1, input$Deck2, input$Deck3, input$Deck4)[activeFilter],
                              Elo = listElo,
                              Match = rep(match, length(inputElo)),
-                             Place = inputPlace
+                             Place = inputPlace,
+                             PlayerOrder = c(input$position, input$position2, input$position3, input$position4)[activeFilter]
     )
     
     v$matches <- rbind(v$matches, match_data)
