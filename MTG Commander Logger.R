@@ -413,7 +413,7 @@ server <- function(input, output, session) {
                            "Active"=1
                           )
     new_hist <- new_deck[, c("Meta", "ID", "Owner", "Deck", "Elo")]
-    new_hist[, `:=`(Match=0, Place=0)]
+    new_hist[, `:=`(Match=0, Place=0, PlayerOrder="NA")]
 
     v$dt <- rbind(v$dt, new_deck)
     v$matches <- rbind(v$matches, new_hist)

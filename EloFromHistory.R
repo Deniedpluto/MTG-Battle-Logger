@@ -44,7 +44,7 @@ for( i in matchlist) {
   # pull in place for the match
   inputPlace <- c(history[Match == i, Place])
   # Run the get_new_ratings function to update the Elo ratings
-  updated_ratings <- get_new_ratings(initial_ratings = inputElo, result_order = inputPlace, k_value = 48, score_base = 1)
+  updated_ratings <- get_new_ratings(initial_ratings = inputElo, result_order = inputPlace, k_value = 60, score_base = 1)
   # pull the recorded match and add the new ratings 
   history_new <- history[Match == i][, NewElo := updated_ratings]
   # combine new match with the prior data
@@ -53,4 +53,18 @@ for( i in matchlist) {
   i <- i + 1
 }
 
+# Write out data for testing
 fwrite(history_base, "CommanderHistoryNewTest.csv")
+
+# Write out the new base data
+fwrite(history_base[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")], "Commander History.csv")
+
+#####-- Recreate Commander Decks.csv --#####
+
+history_base[, Win:=0][Place==1, Win:=1]
+CommanderDecksNew <- history_base[, .(Played = .N-1, Wins=sum(Win), Match = max(Match)), by=c("Meta", "ID", "Owner", "Deck")]
+CommanderDecksNew <- merge.data.table(CommanderDecksNew, history_base[, c("Meta", "ID", "Match", "Elo")], by = c("Meta", "ID", "Match"))
+CommanderDecksNew <- merge.data.table(CommanderDecksNew, decks[, c("Meta", "ID", "Active")], by = c("Meta", "ID") )
+setcolorder(CommanderDecksNew[, c("Meta", "ID", "Owner", "Deck", "Elo", "Played", "Wins", "Active")])
+
+fwrite(CommanderDecksNew, "Commander Decks.csv")
