@@ -3,10 +3,9 @@
 ################################################################################
 
 /.vs
-Commander Decks - Backup.csv
-Commander Decks.csv
-Commander History - Backup.csv
-Commander History.csv
-CommanderDecksWRA.csv
-CommanderHistory.csv
-CommanderHistoryNewTest.csv
+.gitignore
+Data/CommanderDecks_Backup.csv
+Data/CommanderDecks.csv
+Data/CommanderDecksWRA.csv
+Data/CommanderHistory_Backup.csv
+Data/CommanderHistory.csv
