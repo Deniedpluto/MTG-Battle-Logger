@@ -1,4 +1,4 @@
-###  ##-- Initial Setup --######
+#####-- Initial Setup --######
 
 # Load Libraries
 library(rstudioapi)
@@ -8,8 +8,11 @@ library(data.table)
 
 setwd(dirname(getActiveDocumentContext()$path))
 source("MultiEloR.R")
-history <- fread("Commander History.csv") 
-decks <- fread("Commander Decks.csv")
+history <- fread("Data/CommanderHistory.csv") 
+decks <- fread("Data/CommanderDecks.csv")
+
+# Order the matches from 0 to max
+setorder(history, Match)
 
 # Crete a list of matches played
 matchlist <- unique(history[Match > 0, Match])
@@ -44,7 +47,7 @@ for( i in matchlist) {
   # pull in place for the match
   inputPlace <- c(history[Match == i, Place])
   # Run the get_new_ratings function to update the Elo ratings
-  updated_ratings <- get_new_ratings(initial_ratings = inputElo, result_order = inputPlace, k_value = 60, score_base = 1)
+  updated_ratings <- get_new_ratings(initial_ratings = inputElo, result_order = inputPlace, k_value = length(inputElo)*20, score_base = 1)
   # pull the recorded match and add the new ratings 
   history_new <- history[Match == i][, NewElo := updated_ratings]
   # combine new match with the prior data
@@ -54,10 +57,10 @@ for( i in matchlist) {
 }
 
 # Write out data for testing
-fwrite(history_base, "CommanderHistoryNewTest.csv")
+fwrite(history_base, "Data/CommanderHistoryTest.csv")
 
 # Write out the new base data
-fwrite(history_base[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")], "Commander History.csv")
+fwrite(history_base[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")], "Data/CommanderHistory.csv")
 
 #####-- Recreate Commander Decks.csv --#####
 
@@ -67,4 +70,4 @@ CommanderDecksNew <- merge.data.table(CommanderDecksNew, history_base[, c("Meta"
 CommanderDecksNew <- merge.data.table(CommanderDecksNew, decks[, c("Meta", "ID", "Active")], by = c("Meta", "ID") )
 setcolorder(CommanderDecksNew[, c("Meta", "ID", "Owner", "Deck", "Elo", "Played", "Wins", "Active")])
 
-fwrite(CommanderDecksNew, "Commander Decks.csv")
+fwrite(CommanderDecksNew, "Data/CommanderDecks.csv")
