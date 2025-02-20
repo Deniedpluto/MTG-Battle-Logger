@@ -1,15 +1,10 @@
 ###  ##-- Initial Setup --######
 
 # Load Libraries
-library(RODBC)
 library(shiny)
 library(DT)
-library(EloOptimized)
-library(ggplot2)
 library(rstudioapi)
-library(jsonlite)
 library(htmltools)
-library(cli)
 library(data.table)
 library(bslib)
 library(bsicons)

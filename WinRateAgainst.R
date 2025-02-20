@@ -1,15 +1,6 @@
 #####-- Initial Setup --######
 
-# Load Libraries
-library(RODBC)
-library(shiny)
-library(DT)
-library(EloOptimized)
-library(ggplot2)
 library(rstudioapi)
-library(jsonlite)
-library(htmltools)
-library(cli)
 library(data.table)
 
 #####-- Setting up environment --#####
@@ -64,13 +55,19 @@ decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Baye
 fwrite(decks, "Data/CommanderDecksWRA.csv")
 fwrite(history, "Data/CommanderHistory.csv")
 
-# Check to see if am in on my laptop repos
-if (getwd() == "C:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger") { # nolint
-  # Set the wd to the Commander_Decks folder for evidence and save the file
-  setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_Decks")
-  fwrite(decks, "CommanderDecksWRA.csv")
-  
-  # Do the same thing for the Commander_History 
-  setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_History")
-  fwrite(history, "CommanderHistory.csv")
-}
+# # Check to see if am in on my laptop repos
+# if (getwd() == "C:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger") { # nolint
+#   # Set the wd to the Commander_Decks folder for evidence and save the file
+#   setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_Decks")
+#   fwrite(decks, "CommanderDecksWRA.csv")
+#   
+#   # Do the same thing for the Commander_History 
+#   setwd("C:/Users/Matso/source/repos/Deniedpluto/Evidence/sources/Commander_History")
+#   fwrite(history, "CommanderHistory.csv")
+# }
+
+# Set Working Directory back to main folder
+setwd("C:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger")
+
+# Write the data to MotherDuck
+source_python("WriteToMotherDuck.py")

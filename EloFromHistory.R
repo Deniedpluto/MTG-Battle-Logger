@@ -64,10 +64,23 @@ fwrite(history_base[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", 
 
 #####-- Recreate Commander Decks.csv --#####
 
+# Convert Place into a win flag
 history_base[, Win:=0][Place==1, Win:=1]
+
+# Count Plays, Wins, and Last Match
 CommanderDecksNew <- history_base[, .(Played = .N-1, Wins=sum(Win), Match = max(Match)), by=c("Meta", "ID", "Owner", "Deck")]
+
+# Pull in Elo from last match
 CommanderDecksNew <- merge.data.table(CommanderDecksNew, history_base[, c("Meta", "ID", "Match", "Elo")], by = c("Meta", "ID", "Match"))
+
+# Pull in Active Flag from Commander Decks table
 CommanderDecksNew <- merge.data.table(CommanderDecksNew, decks[, c("Meta", "ID", "Active")], by = c("Meta", "ID") )
+
+# Reorder columns to match Commander Decks table
 setcolorder(CommanderDecksNew[, c("Meta", "ID", "Owner", "Deck", "Elo", "Played", "Wins", "Active")])
 
+# Remove the last match column 
+CommanderDecksNew[, Match:=NULL]
+
+# Write out the data back to the Commander Decks table
 fwrite(CommanderDecksNew, "Data/CommanderDecks.csv")
