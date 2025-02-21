@@ -6,6 +6,7 @@ library(DT)
 library(rstudioapi)
 library(htmltools)
 library(data.table)
+library(cli)
 library(bslib)
 library(bsicons)
 

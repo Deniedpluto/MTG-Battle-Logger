@@ -2,6 +2,7 @@
 
 library(rstudioapi)
 library(data.table)
+library(reticulate)
 
 #####-- Setting up environment --#####
 
