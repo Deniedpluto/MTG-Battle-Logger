@@ -42,15 +42,22 @@ for(i in 1:nrow(decks)) {
 # Merge the win rate against table with the decks table
 decks <- merge.data.table(decks, win_rate_against, by = c("Meta", "ID"))
 # Calculate the strength of the deck
-decks[, STR := `Win Rate`*WRA]
+decks[, STR := (`Win Rate`+WRA)/2] # Formerly 'Win Rate'*WRA
+decks[, STR2 := `Win Rate`*WRA]
 # decks[Played > 0, STD_STR := (STR - mean(STR))/sd(STR)]
 # decks[Played > 0, Norm_STR := STR/max(STR)]
 # Calculate the Bayesian Weight of the deck
 decks[Played > 0, Weight := Played/(Played + mean(Played))]
 # Calculate the Bayesian Strength of the deck
 decks[Played > 0, `Bayes STR` := Weight * STR + (1 - Weight) * mean(STR)]
+decks[Played > 0, `Bayes STR2` := Weight * STR2 + (1 - Weight) * mean(STR2)]
 # Calculate the Standardized Bayesian Strength of the deck
 decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Bayes STR`)]
+decks[Played > 0, `Norm Bayes STR2` := (`Bayes STR2` - mean(`Bayes STR2`))/sd(`Bayes STR2`)]
+# Adding in mean STR and STR2 for comparison purposes
+decks[Played > 0, meanSTR := mean(STR)]
+decks[Played > 0, meanSTR2 := mean(STR2)]
+
 
 # Save out the files 
 fwrite(decks, "Data/CommanderDecksWRA.csv")
