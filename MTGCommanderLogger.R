@@ -21,23 +21,27 @@ decks <-fread("Data/CommanderDecks.csv")
 
 # Adding in New Decks ---------------------------------------------------------
 # 
+# # Check decks to see if there are decks without ids or decks with name changes
 # decks[, new_id := hash_sha256(paste0(Owner, Deck))]
 # id_switch <- decks[ID !=new_id & ID != "" , c("ID", "Deck", "new_id")]
 # 
+# # Replace deck id in history table
 # new_hist <- merge.data.table(history, id_switch, by = "ID", all.x = T)
 # new_hist[!is.na(new_id), `:=`(ID = new_id, Deck.x = Deck.y) ]
 # setnames(new_hist, "Deck.x", "Deck")
-# history <- new_hist[, c("ID", "Owner", "Deck", "Elo", "Match", "Place")]
+# history <- new_hist[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "Player Order")]
 # rm(new_hist, id_switch)
 # 
+# # Replace deck id in deck table
 # decks[, ID:=new_id]
 # decks[, new_id:=NULL]
-# new_decks <- decks[!(ID %in% history$ID), c("ID", "Owner", "Deck", "Elo")]
+# new_decks <- decks[!(ID %in% history$ID), c("Meta", "ID", "Owner", "Deck", "Elo")]
 # history <- rbind(new_decks[, `:=`(Match = 0, Place = 0)], history)
+# rm(new_decks)
 # 
-# fwrite(history, "Commander History.csv")
-# fwrite(decks, "Commander Decks.csv")
-
+# fwrite(history, "Data/CommanderHistory.csv")
+# fwrite(decks, "Data/CommanderDecks.csv")
+# 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
   
