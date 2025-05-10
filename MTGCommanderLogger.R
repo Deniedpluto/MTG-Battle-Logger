@@ -29,7 +29,7 @@ decks <-fread("Data/CommanderDecks.csv")
 # new_hist <- merge.data.table(history, id_switch, by = "ID", all.x = T)
 # new_hist[!is.na(new_id), `:=`(ID = new_id, Deck.x = Deck.y) ]
 # setnames(new_hist, "Deck.x", "Deck")
-# history <- new_hist[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "Player Order")]
+# history <- new_hist[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")]
 # rm(new_hist, id_switch)
 # 
 # # Replace deck id in deck table

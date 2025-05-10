@@ -61,7 +61,6 @@ decks[Played > 0, meanSTR2 := mean(STR2)]
 
 # Save out the files 
 fwrite(decks, "Data/CommanderDecksWRA.csv")
-fwrite(history, "Data/CommanderHistory.csv")
 
 # # Check to see if am in on my laptop repos
 # if (getwd() == "C:/Users/Matso/source/repos/Deniedpluto/MTG-Battle-Loggger") { # nolint

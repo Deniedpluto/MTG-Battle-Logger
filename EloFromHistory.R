@@ -28,7 +28,7 @@ for( i in matchlist) {
   current_Meta <- unique(history[Match == i, Meta])
   # pull the list of decks that played in the match
   decklist <- c(history[Match == i, ID])
-  # initialize d as 1 to iterate throught the decks played in the match
+  # initialize d as 1 to iterate through the decks played in the match
   d <- 1    
   # seed the starting elo
   inputElo <- rep(1000, length(decklist))
@@ -39,7 +39,7 @@ for( i in matchlist) {
     # pull last match for the selected deck
     last_match <- history[ID == current_deck & Match < i & Meta == current_Meta, max(Match)]
     # pull the last Elo for the deck
-    inputElo[d] <- history[ID == current_deck & Match == last_match & Meta == current_Meta, Elo]
+    inputElo[d] <- history_base[ID == current_deck & Match == last_match & Meta == current_Meta, NewElo]
     # increment d to iterate through
     d <- d + 1
   }
@@ -55,12 +55,16 @@ for( i in matchlist) {
   # increment i to iterate through
   i <- i + 1
 }
+rm(history_new)
 
-# Write out data for testing
-fwrite(history_base, "Data/CommanderHistoryTest.csv")
+# # Write out data for testing
+# fwrite(history_base, "Data/CommanderHistoryTest.csv")
+
+#Overwrite Elo with NewElo
+history_base <- history_base[, Elo:=NewElo][, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")]
 
 # Write out the new base data
-fwrite(history_base[, c("Meta", "ID", "Owner", "Deck", "Elo", "Match", "Place", "PlayerOrder")], "Data/CommanderHistory.csv")
+fwrite(history_base, "Data/CommanderHistory.csv")
 
 #####-- Recreate Commander Decks.csv --#####
 
