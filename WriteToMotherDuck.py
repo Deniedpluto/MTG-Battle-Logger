@@ -18,10 +18,15 @@ CommanderHistory = pl.read_csv('Data/CommanderHistory.csv', schema_overrides={"M
 LastMatch = pl.DataFrame(con.sql("SELECT MAX(Match) AS LastMatch FROM MTG.CommanderHistory"))
 # Filter down to only new matches
 NewMatches = pa.table(CommanderHistory.filter(pl.col("Match") > LastMatch["LastMatch"][0]))
+# Get list of deck ids
+DeckIDs = pl.DataFrame(con.sql("SELECT DISTINCT ID FROM MTG.CommanderDecksWRA"))
+# Filter down to only new decks
+NewDecks = pa.table(CommanderHistory.filter(~pl.col("ID").is_in(DeckIDs["ID"])).filter(pl.col("Match") == 0))
 
-# Wtite new matches to motherduck
+# Write new decks matches to motherduck
+con.sql("INSERT INTO MTG.CommanderHistory SELECT * FROM NewDecks");
 con.sql("INSERT INTO MTG.CommanderHistory SELECT * FROM NewMatches");
-# Replace 
+# Replace WRA table with new data
 con.sql("CREATE OR REPLACE TABLE MTG.CommanderDecksWRA AS SELECT * FROM 'Data/CommanderDecksWRA.csv'");
 '''
 con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistory AS SELECT * FROM 'Data/CommanderHistory.csv'");
