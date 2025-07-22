@@ -29,5 +29,5 @@ con.sql("INSERT INTO MTG.CommanderHistory SELECT * FROM NewMatches");
 # Replace WRA table with new data
 con.sql("CREATE OR REPLACE TABLE MTG.CommanderDecksWRA AS SELECT * FROM 'Data/CommanderDecksWRA.csv'");
 '''
-con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistory AS SELECT * FROM 'Data/CommanderHistory.csv'");
+# con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistory AS SELECT * FROM 'Data/CommanderHistory.csv'");
 '''
