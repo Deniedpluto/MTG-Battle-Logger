@@ -42,21 +42,37 @@ for(i in 1:nrow(decks)) {
 # Merge the win rate against table with the decks table
 decks <- merge.data.table(decks, win_rate_against, by = c("Meta", "ID"))
 # Calculate the strength of the deck
-decks[, STR := (`Win Rate`+WRA)/2] # Formerly 'Win Rate'*WRA
-decks[, STR2 := `Win Rate`*WRA]
+decks[, STR := (`Win Rate`+sqrt(WRA))/2] # Formerly 'Win Rate'*WRA
+decks[, STR2 := (`Win Rate`+WRA)/2]
+# decks[, STR3 := `Win Rate`*WRA] # This is not definitely inferior
 # decks[Played > 0, STD_STR := (STR - mean(STR))/sd(STR)]
 # decks[Played > 0, Norm_STR := STR/max(STR)]
+
 # Calculate the Bayesian Weight of the deck
 decks[Played > 0, Weight := Played/(Played + mean(Played))]
+
 # Calculate the Bayesian Strength of the deck
 decks[Played > 0, `Bayes STR` := Weight * STR + (1 - Weight) * mean(STR)]
 decks[Played > 0, `Bayes STR2` := Weight * STR2 + (1 - Weight) * mean(STR2)]
+# decks[Played > 0, `Bayes STR3` := Weight * STR3 + (1 - Weight) * mean(STR3)]
+
 # Calculate the Standardized Bayesian Strength of the deck
 decks[Played > 0, `Norm Bayes STR` := (`Bayes STR` - mean(`Bayes STR`))/sd(`Bayes STR`)]
 decks[Played > 0, `Norm Bayes STR2` := (`Bayes STR2` - mean(`Bayes STR2`))/sd(`Bayes STR2`)]
+# decks[Played > 0, `Norm Bayes STR3` := (`Bayes STR3` - mean(`Bayes STR3`))/sd(`Bayes STR3`)]
+
 # Adding in mean STR and STR2 for comparison purposes
 decks[Played > 0, meanSTR := mean(STR)]
 decks[Played > 0, meanSTR2 := mean(STR2)]
+# decks[Played > 0, meanSTR3 := mean(STR3)]
+
+#Slope and Conversion between Elo and Norm Bayes STR
+decks[Played > 0, Slope:=mean((Elo-1000)/`Norm Bayes STR`)]
+decks[Played > 0, ExpectedElo:=`Norm Bayes STR`*Slope+1000]
+decks[Played > 0, EloDiff:=Elo-ExpectedElo]
+decks[Played > 0, Slope2:=mean((Elo-1000)/`Norm Bayes STR2`)]
+decks[Played > 0, ExpectedElo2:=`Norm Bayes STR2`*Slope+1000]
+decks[Played > 0, EloDiff2:=Elo-ExpectedElo2]
 
 
 # Save out the files 
