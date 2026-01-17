@@ -74,7 +74,7 @@ EloHistory = pl.concat([EloHistory, NewEloEntries], how="vertical").sort("Match"
 
 # Write updated EloHistory to Motherduck
 #con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistoryBase AS SELECT * FROM EloHistory");
-con.sql("INSERT INTO MTG.CommanderHistoryBase (SELECT * FROM NewEloEntries)");
+con.sql("UPDATE MTG.CommanderHistoryBase SET Elo = n.Elo FROM NewEloEntries n WHERE MTG.CommanderHistoryBase.Basic_ID = n.Basic_ID AND MTG.CommanderHistoryBase.Match = n.Match");
 
 #####-- Win Rate Against --#####
 
