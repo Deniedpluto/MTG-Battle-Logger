@@ -84,8 +84,8 @@ NewDecks = ExcelDecks.join(CurrentDecks, left_on="BASIC_ID", right_on="Basic_ID"
 con.sql("INSERT INTO MTG.CommanderHistoryBase SELECT * FROM NewMatches");
 #con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistoryNew AS SELECT * FROM long_df"); # Full list of matches
 
-# con.sql("INSERT INTO MTG.MatchDetails SELECT * FROM NewDetails");
-con.sql("CREATE OR REPLACE TABLE MTG.MatchDetails AS SELECT * FROM MatchDetails"); # Full list of matches details
+con.sql("INSERT INTO MTG.MatchDetails SELECT * FROM NewDetails");
+#con.sql("CREATE OR REPLACE TABLE MTG.MatchDetails AS SELECT * FROM MatchDetails"); # Full list of matches details
 
 con.sql("INSERT INTO MTG.CommanderDecksNew SELECT * FROM NewDecks");
 # con.sql("CREATE OR REPLACE TABLE MTG.CommanderDecksNew AS SELECT * FROM ExcelDecks");
