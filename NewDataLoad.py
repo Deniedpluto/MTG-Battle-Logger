@@ -79,15 +79,16 @@ ExcelDecks = pl.read_excel(
     sheet_name='CommanderDecks'
 ).select("BASIC_ID", "Meta", "Owner", "Deck", "Active")
 
-NewDecks = ExcelDecks.join(CurrentDecks, left_on="BASIC_ID", right_on="Basic_ID", how="anti")
+NewDecks = ExcelDecks.join(CurrentDecks, left_on="BASIC_ID", right_on="BASIC_ID", how="anti")
 
 # Write new matches to Motherduck
 con.sql("INSERT INTO MTG.CommanderHistoryBase SELECT * FROM NewMatches");
 #con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistoryNew AS SELECT * FROM long_df"); # Full list of matches
-print(NewMatches)
+print(NewMatches["Match"].unique())
 
 con.sql("INSERT INTO MTG.MatchDetails SELECT * FROM NewDetails");
 #con.sql("CREATE OR REPLACE TABLE MTG.MatchDetails AS SELECT * FROM MatchDetails"); # Full list of matches details
 
 con.sql("INSERT INTO MTG.CommanderDecksNew SELECT * FROM NewDecks");
 # con.sql("CREATE OR REPLACE TABLE MTG.CommanderDecksNew AS SELECT * FROM ExcelDecks");
+print(NewDecks["Deck"])
