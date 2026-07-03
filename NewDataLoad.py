@@ -17,7 +17,7 @@ con.sql("USE my_db")
 LastMatch = pl.DataFrame(con.sql("SELECT MAX(Match) AS LastMatch FROM MTG.CommanderHistoryBase"))
 
 # Pull the current decks in the database
-CurrentDecks = pl.DataFrame(con.sql("SELECT DISTINCT BASIC_ID FROM MTG.CommanderHistoryBase"))
+CurrentDecks = pl.DataFrame(con.sql("SELECT DISTINCT BASIC_ID FROM MTG.CommanderDecksNew"))
 
 # Read in Excel Data
 ExcelLogger = pl.read_excel(
@@ -53,7 +53,8 @@ for i in range(1, 5):
             "Match",
             pl.col(f"P{i} Place").alias("Place"),
             pl.lit(i, pl.Int8).alias("PlayerOrder"),
-            pl.col(f"P{i} Rating").cast(pl.Float64).alias("MatchRating")
+            pl.col(f"P{i} Rating").cast(pl.Float64).alias("MatchRating"),
+            pl.col(f"P{i} Defeated By").alias("DefeatedBy")
         ])
     )
 # Merge together dataframes
@@ -67,7 +68,7 @@ NewMatches = pa.table(long_df.filter(
     pl.col("Match") > LastMatch["LastMatch"][0]
 ))
 # Separate out match details
-MatchDetails = ExcelLogger.select("Meta", "Date", "Match", "Player Count", "Turns", "Match Type", "Win Type", "Notes", "Match Rating")
+MatchDetails = ExcelLogger.select("Meta", "Date", "Match", "Player Count", "Turns", "Match Type", "Win Type", "Notes", "Match Rating", "MVP", "MVC")
 NewDetails = pa.table(MatchDetails.filter(
     pl.col("Match") > LastMatch["LastMatch"][0]
 ))
@@ -83,6 +84,7 @@ NewDecks = ExcelDecks.join(CurrentDecks, left_on="BASIC_ID", right_on="Basic_ID"
 # Write new matches to Motherduck
 con.sql("INSERT INTO MTG.CommanderHistoryBase SELECT * FROM NewMatches");
 #con.sql("CREATE OR REPLACE TABLE MTG.CommanderHistoryNew AS SELECT * FROM long_df"); # Full list of matches
+print(NewMatches)
 
 con.sql("INSERT INTO MTG.MatchDetails SELECT * FROM NewDetails");
 #con.sql("CREATE OR REPLACE TABLE MTG.MatchDetails AS SELECT * FROM MatchDetails"); # Full list of matches details
